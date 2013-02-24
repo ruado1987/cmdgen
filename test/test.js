@@ -2,7 +2,7 @@ var cmdgen = require( '../index.js' ),
 	_ = require( 'underscore' );
 
 var tmpl = _.template("dply_app_push ${comType} \
-${comPath} \"/home/ruavang/dev/cmdgen/src\\${localPath}\" 0");
+${comPath} \"" + process.cwd() + "/src\\${localPath}\" 0");
 
 _.mixin( {
 	classify: function( str ) {
