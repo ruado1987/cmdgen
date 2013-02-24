@@ -4,7 +4,7 @@
   "description": "simple utility to generate command to push files",
   "main": "index.js",
   "scripts": {
-    "test": "nodeunit test"
+    "test": "grunt nodeunit"
   },
   "repository": "https://github.com/ruado1987/cmdgen",
   "author": "harry",

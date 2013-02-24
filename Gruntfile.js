@@ -1,4 +1,4 @@
-exports.function = module(grunt) {
+module.exports = function( grunt ) {
 
     "use strict";
     // Project configuration.
