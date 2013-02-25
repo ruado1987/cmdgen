@@ -11,7 +11,7 @@ module.exports = function( grunt ) {
             }
         },
         nodeunit: {
-            all: ['test/*test.js']
+            all: ['test/*.js']
         }
     });
 

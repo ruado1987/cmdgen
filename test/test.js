@@ -6,7 +6,7 @@ ${comPath} \"" + process.cwd() + "/src\\${localPath}\" 0");
 
 _.mixin( {
 	classify: function( str ) {
-		return str.replace( /\.java/g, ".class" );
+	   return str.replace( /\.java/g, ".class" );
 	}
 } );
 
