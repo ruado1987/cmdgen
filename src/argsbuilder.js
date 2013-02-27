@@ -6,25 +6,25 @@ exports.build = function (command) {
         fn;
 
     fn = function (match) {
-			return function (spawn) {
-				var args, push;
+	   return function (spawn) {
+		   var args, push;
 
-				args = Array.prototype.slice.call(match, 1);
-				args.unshift("/c");				
-				push = spawn("cmd", args);
+		   args = Array.prototype.slice.call(match, 1);
+		   args.unshift("/c");				
+		   push = spawn("cmd", args);
 
-				push.stdout.on("data", function (data) {
-					console.log('stdout: ' + data);
-				});
+		   push.stdout.on("data", function (data) {
+			   console.log('stdout: ' + data);
+		   });
 
-				push.stderr.on("data", function (data) {
-					console.log('stderr: ' + data);
-				});
+		   push.stderr.on("data", function (data) {
+			   console.log('stderr: ' + data);
+		   });
 
-				push.on("exit", function (code) {
-					console.log('child process exited with code ' + code);
-				});
-			};
+		   push.on("exit", function (code) {
+			   console.log('child process exited with code ' + code);
+		   });
+	   };
     };
 
     while ((match = regex.exec(command)) !== null) {
