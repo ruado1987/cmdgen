@@ -12,13 +12,17 @@ module.exports = function( grunt ) {
         },
         nodeunit: {
             all: ['test/*.js']
-        }
+        },
+		jshint: {
+			all: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js']
+		}
     });
 
     grunt.loadNpmTasks('grunt-contrib-nodeunit');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-jshint');
 
     // Default task(s).
-    grunt.registerTask('default', ['nodeunit', 'uglify']);
-
+    grunt.registerTask('default', ['jshint', 'nodeunit', 'uglify']);
+	grunt.registerTask('travis', ['jshint', 'nodeunit']);
 };

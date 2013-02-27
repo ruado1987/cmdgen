@@ -41,28 +41,28 @@ function generateCommand(match) {
 function generateCmdForJavaComponent(match) {
     var pComps, cPath, cType;
     pComps = [
-    baseDir,
-    commonDir,
-    match[1],
-    config[match[1]].bin,
-    match[3],
-    match[4] + ".class"];
+		baseDir,
+		commonDir,
+		match[1],
+		config[match[1]].bin,
+		match[3],
+		match[4] + ".class"];
     cPath = match[3].replace(/\\/g, "/");
     cPath = _.join("/", cPath, match[4] + ".class");
     cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
 
-    return fillTemplate(cType, cPath, pComps);;
+    return fillTemplate(cType, cPath, pComps);
 }
 
 function generateCmdForWebComponent(match) {
     var pComps, cPath, cType;
     pComps = [
-    baseDir,
-    commonDir,
-    match[1],
-    match[2],
-    match[3],
-    _.join(".", match[4], match[5])];
+		baseDir,
+		commonDir,
+		match[1],
+		match[2],
+		match[3],
+		_.join(".", match[4], match[5])];
 
     if (["properties", "jsp"].indexOf(match[5]) === -1) {
         cPath = match[3].replace(/\\/g, "/");
@@ -113,7 +113,7 @@ function genFromString(str) {
         match,
         pushCmds = [];
 
-    while ((match = regex.exec(str)) != null) {
+    while ((match = regex.exec(str)) !== null) {
         pushCmds.push(generateCommand(match));
     }
 
