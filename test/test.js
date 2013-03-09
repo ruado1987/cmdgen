@@ -67,13 +67,24 @@ exports.testGenCmdFromDAOJavaComponent = function (test) {
 };
 
 exports.testGenCmdFromCommonJavaComponent = function (test) {
-    var component = "WebApplication_src\\vrl-commons\\source\\sg" +
+    var component = "Framework_src\\vrl-commons\\source\\sg" +
         "\\gov\\lta\\vrl\\commons\\EN2FunctionID.java";
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "vrl-commons.jar",
         localPath: _.classify(component.replace("source", "bin")),
         comPath: _.classify(extractComponentPath(component, "source"))
+    });
+};
+
+exports.testGenCmdFromBatchJavaComponent = function (test) {
+    var component = "BatchPrograms_src\\vrl-j2ee-client\\appClientModule\\" + 
+                    "sg\\gov\\lta\\vrl\\app\\batch\\enf2\\field\\TextFile.java";
+
+    testCommandGeneratedAsExpected.call(test, component, {
+        comType: "vrl-j2ee-client.jar",
+        localPath: _.classify(component.replace("appClientModule", "bin")),
+        comPath: _.classify(extractComponentPath(component, "appClientModule"))
     });
 };
 

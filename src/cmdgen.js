@@ -13,21 +13,23 @@ _.templateSettings = {
 
 // configuration vars
 var config = {
-    "vrl-web-app": {
-        bin: "Web Content\\WEB-INF\\classes"
+        "vrl-web-app": {
+            bin: "Web Content\\WEB-INF\\classes"
+        },
+        "vrl-ejb-app": {
+            bin: "bin"
+        },
+        "vrl-dao-app": {
+            bin: "bin"
+        },
+        "vrl-commons": {
+            bin: "bin"
+        },
+        "vrl-j2ee-client": {
+            bin: "bin"
+        }
     },
-    "vrl-ejb-app": {
-        bin: "bin"
-    },
-    "vrl-dao-app": {
-        bin: "bin"
-    },
-    "vrl-commons": {
-        bin: "bin"
-    }
-},
-baseDir = argv.baseDir || __dirname,
-    commonDir = "WebApplication_src",
+    baseDir = argv.baseDir || __dirname,
     cmdTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0");
 
 function generateCommand(match) {
@@ -42,7 +44,7 @@ function generateCmdForJavaComponent(match) {
     var pComps, cPath, cType;
     pComps = [
 		baseDir,
-		commonDir,
+		getCommonDir( match[1] ),
 		match[1],
 		config[match[1]].bin,
 		match[3],
@@ -58,7 +60,7 @@ function generateCmdForWebComponent(match) {
     var pComps, cPath, cType;
     pComps = [
 		baseDir,
-		commonDir,
+		getCommonDir(),
 		match[1],
 		match[2],
 		match[3],
@@ -79,6 +81,16 @@ function generateCmdForWebComponent(match) {
 
     /* remove falsy values, which may be the case when component type is JSP */
     return fillTemplate(cType, cPath, _.compact(pComps));
+}
+
+function getCommonDir( cType ) {
+    if (cType === "vrl-commons") {
+        return "Framework_src";
+    } else if (cType === "vrl-j2ee-client") {
+        return "BatchPrograms_src";
+    } else {
+        return "WebApplication_src";
+    }
 }
 
 function fillTemplate(cType, cPath, pComps) {
