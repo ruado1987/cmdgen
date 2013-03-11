@@ -29,7 +29,7 @@ var config = {
             bin: "bin"
         }
     },
-    baseDir = argv.baseDir || __dirname,
+    baseDir = argv.baseDir || process.cwd(),
     cmdTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0");
 
 function generateCommand(match) {

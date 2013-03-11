@@ -3,7 +3,7 @@ var cmdgen = require('../index.js'),
 
 var tmpl = _.template("dply_app_push ${comType} " +
     "${comPath} \"" + process.cwd() +
-    "/src\\${localPath}\" 0");
+    "\\${localPath}\" 0");
 
 _.mixin({
     classify: function (str) {
