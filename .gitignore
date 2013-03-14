@@ -1,5 +1,8 @@
 node_modules/
 build/
 src/*~
+src/*.bak
 test/*~
+test/*.bak
 *~
+*.bak
