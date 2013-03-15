@@ -80,12 +80,18 @@ exports.testGenCmdFromCommonJavaComponent = function (test) {
 exports.testGenCmdFromBatchJavaComponent = function (test) {
     var component = "BatchPrograms_src\\vrl-j2ee-client\\appClientModule\\" + 
                     "sg\\gov\\lta\\vrl\\app\\batch\\enf2\\field\\TextFile.java";
+    var currentTmpl = tmpl;
+    tmpl = _.template("dply_batch_push ${comType} " +
+						"${comPath} \""	+ process.cwd()	+
+						"\\${localPath}\"");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "vrl-j2ee-client.jar",
         localPath: _.classify(component.replace("appClientModule", "bin")),
         comPath: _.classify(extractComponentPath(component, "appClientModule"))
     });
+    
+    tmpl = currentTmpl;
 };
 
 exports.testGenCmdFromXmlComponent = function (test) {

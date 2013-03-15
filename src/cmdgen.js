@@ -30,7 +30,8 @@ var config = {
         }
     },
     baseDir = argv.baseDir || process.cwd(),
-    cmdTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0");
+    appTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0"),
+    batchTmpl = _.template("dply_batch_push ${comType} ${comPath} ${localPath}");
 
 function generateCommand(match) {
     if ("java" === match[5]) {
@@ -93,12 +94,20 @@ function getCommonDir( cType ) {
     }
 }
 
-function fillTemplate(cType, cPath, pComps) {
-    return cmdTmpl({
-        comType: cType,
-        comPath: cPath,
-        localPath: _s.quote(pComps.join("\\"))
-    });
+function fillTemplate(cType, cPath,	pComps)	{
+	if (cType === "vrl-j2ee-client.jar") {
+		return batchTmpl({
+			comType: cType,
+			comPath: cPath,
+			localPath: _s.quote(pComps.join("\\"))
+		});
+	} else {
+		return appTmpl({
+			comType: cType,
+			comPath: cPath,
+			localPath: _s.quote(pComps.join("\\"))
+		});
+	}
 }
 
 function genAndWriteToFile(src, dest) {
