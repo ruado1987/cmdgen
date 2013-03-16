@@ -139,13 +139,12 @@ exports.testGenCmdFromTldComponent = function (test) {
 };
 
 function testUnsupportedComponentTypes( component ) {
-	var cmd = 
-		cmdgen.genFromString( "WebApplication_src\lta-vrl\lib\commons-lang.jar" );	
+	var cmd = cmdgen.genFromString( component );	
 	this.equal( cmd, "" );	
 }
 exports.testGenCmdWithUnsupportedComponentTypes = function (test) {
-	testUnsupportedComponentTypes.call( test, "WebApplication_src\lta-vrl\lib\commons-lang.jar" );
-	testUnsupportedComponentTypes.call( test, "WebApplication_src\vrl-web-app\Web Content\META-INF\MANIFEST.MF" );
+	testUnsupportedComponentTypes.call( test, "WebApplication_src\\lta-vrl\\lib\\commons-lang.jar" );
+	testUnsupportedComponentTypes.call( test, "WebApplication_src\\vrl-web-app\\Web Content\\META-INF\\MANIFEST.MF" );
 	
 	test.done();
 };
