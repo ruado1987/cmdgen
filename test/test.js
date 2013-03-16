@@ -105,7 +105,7 @@ exports.testGenCmdFromXmlComponent = function (test) {
     });
 };
 
-exports.testGenFromJsComponent = function (test) {
+exports.testGenCmdFromJsComponent = function (test) {
     var component = "WebApplication_src\\vrl-web-app\\Web " +
         "Content\\scripts\\plupload\\jquery.postalCode-0.1.js";
 
@@ -116,7 +116,7 @@ exports.testGenFromJsComponent = function (test) {
     });
 };
 
-exports.testGenFromCssComponent = function (test) {
+exports.testGenCmdFromCssComponent = function (test) {
     var component = "WebApplication_src\\vrl-web-app\\Web " +
         "Content\\theme\\vrl.css";
 
@@ -127,7 +127,7 @@ exports.testGenFromCssComponent = function (test) {
     });
 };
 
-exports.testGenFromTldComponent = function (test) {
+exports.testGenCmdFromTldComponent = function (test) {
     var component = "WebApplication_src\\vrl-web-app\\Web " +
         "Content\\WEB-INF\\lta-vrl-en2-utils.tld";
 
@@ -136,4 +136,16 @@ exports.testGenFromTldComponent = function (test) {
         localPath: component,
         comPath: extractComponentPath(component, "Web Content")
     });
+};
+
+function testUnsupportedComponentTypes( component ) {
+	var cmd = 
+		cmdgen.genFromString( "WebApplication_src\lta-vrl\lib\commons-lang.jar" );	
+	this.equal( cmd, "" );	
+}
+exports.testGenCmdWithUnsupportedComponentTypes = function (test) {
+	testUnsupportedComponentTypes.call( test, "WebApplication_src\lta-vrl\lib\commons-lang.jar" );
+	testUnsupportedComponentTypes.call( test, "WebApplication_src\vrl-web-app\Web Content\META-INF\MANIFEST.MF" );
+	
+	test.done();
 };

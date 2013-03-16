@@ -3,6 +3,9 @@ var fs = require("fs"),
     argv = require("optimist").argv,
     _ = require("underscore"),
     _s = require("underscore.string");
+    
+// Array.prototype methods quick reference
+var concat = Array.prototype.concat;
 
 // mixin underscore.string to underscore namespace
 _.mixin(_s.exports());
@@ -33,15 +36,15 @@ var config = {
     appTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0"),
     batchTmpl = _.template("dply_batch_push ${comType} ${comPath} ${localPath}");
 
-function generateCommand(match) {
-    if ("java" === match[5]) {
-        return generateCmdForJavaComponent(match);
+function generateCommand( match ) {	
+    if ( match[5] === "java" ) {
+        return generateCmdForJavaComponent( match );
     } else {
-        return generateCmdForWebComponent(match);
+        return generateCmdForWebComponent( match );
     }
 }
 
-function generateCmdForJavaComponent(match) {
+function generateCmdForJavaComponent( match ) {
     var pComps, cPath, cType;
     pComps = [
 		baseDir,
@@ -49,9 +52,10 @@ function generateCmdForJavaComponent(match) {
 		match[1],
 		config[match[1]].bin,
 		match[3],
-		match[4] + ".class"];
+		match[4].replace("java", "class")
+	];
     cPath = match[3].replace(/\\/g, "/");
-    cPath = _.join("/", cPath, match[4] + ".class");
+    cPath = _.join( "/", cPath, pComps[5] );
     cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
 
     return fillTemplate(cType, cPath, pComps);
@@ -65,18 +69,19 @@ function generateCmdForWebComponent(match) {
 		match[1],
 		match[2],
 		match[3],
-		_.join(".", match[4], match[5])];
-
+		match[4]
+	];	
+	
     if (["properties", "jsp"].indexOf(match[5]) === -1) {
         cPath = match[3].replace(/\\/g, "/");
-        cPath = _.join("/", cPath, _.join(".", match[4], match[5]));
+        cPath = _.join( "/", cPath, match[4] );
         cType = "WAR";
     } else if ("jsp" === match[5]) {
         cPath = _s.splice(match[3], 0, 4).replace(/\\/g, "/");
-        cPath = _.join("/", cPath, _.join(".", match[4], match[5]));
+        cPath = _.join( "/", cPath, match[4] );
         cType = "JSP";
     } else { // properties
-        cPath = _.join(".", match[4], match[5]);
+        cPath = match[4];
         cType = "Action";
     }
 
@@ -85,9 +90,9 @@ function generateCmdForWebComponent(match) {
 }
 
 function getCommonDir( cType ) {
-    if (cType === "vrl-commons") {
+    if ( cType === "vrl-commons" ) {
         return "Framework_src";
-    } else if (cType === "vrl-j2ee-client") {
+    } else if ( cType === "vrl-j2ee-client" ) {
         return "BatchPrograms_src";
     } else {
         return "WebApplication_src";
@@ -95,7 +100,7 @@ function getCommonDir( cType ) {
 }
 
 function fillTemplate(cType, cPath,	pComps)	{
-	if (cType === "vrl-j2ee-client.jar") {
+	if ( cType.indexOf("vrl-j2ee-client") >= 0 ) {
 		return batchTmpl({
 			comType: cType,
 			comPath: cPath,
@@ -114,15 +119,10 @@ function genAndWriteToFile(src, dest) {
     fs.readFile(src, "utf-8", function (err, data) {
         var pushCmds = genFromString(data);
 
-        var out = fs.createWriteStream(dest, {
-            flags: 'w+',
-            encoding: 'utf-8',
-            mode: 0666
-        });
+        var out = fs.createWriteStream( dest );
 
         pushCmds.forEach(function (val, idx) {
-            out.write(val);
-            out.write("\n");
+            out.write(val + "\n");            
         });
         out.end();
         out.destroy();
@@ -130,12 +130,16 @@ function genAndWriteToFile(src, dest) {
 }
 
 function genFromString(str) {
-    var regex = /[^\-]+(vrl\-[^\\]+)\\(.+?)(?:\\(.+)\\|\\)(.+)\.(java|tld|jsp|js|xml|properties|css)/g,
-        match,
+    var match, ext, path,
+		regex = /[^\\]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,		
+		exts = [ "java", "tld", "jsp", "js", "xml", "properties", "css" ],
         pushCmds = [];
 
-    while ((match = regex.exec(str)) !== null) {
-        pushCmds.push(generateCommand(match));
+    while ( (match = regex.exec(str)) ) {
+		path = match[ 0 ];		
+		if ( exts.indexOf( (ext = path.substring( path.lastIndexOf(".") + 1 )) ) >= 0 ) {
+			pushCmds.push(generateCommand( concat.call(match, ext) ));
+		}
     }
 
     return pushCmds;
