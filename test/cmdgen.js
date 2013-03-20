@@ -138,13 +138,17 @@ exports.testGenCmdFromTldComponent = function (test) {
     });
 };
 
-function testUnsupportedComponentTypes( component ) {
+function testEmptyCommandGenerated( component ) {
 	var cmd = cmdgen.genFromString( component );	
 	this.equal( cmd, "" );	
 }
-exports.testGenCmdWithUnsupportedComponentTypes = function (test) {
-	testUnsupportedComponentTypes.call( test, "WebApplication_src\\lta-vrl\\lib\\commons-lang.jar" );
-	testUnsupportedComponentTypes.call( test, "WebApplication_src\\vrl-web-app\\Web Content\\META-INF\\MANIFEST.MF" );
+
+exports.testGenCmdWithUnmatchingComponentPaths = function (test) {
+	testEmptyCommandGenerated.call( test, "WebApplication_src\\lta-vrl\\lib\\commons-lang.jar" );
+	testEmptyCommandGenerated.call( test, "WebApplication_src\\vrl-web-app\\Web Content\\META-INF\\MANIFEST.MF" );
+	testEmptyCommandGenerated.call( test, "WebApplication_src/vrl-web-app/Web Content/WEB-INF/lta-vrl-en2-utils.tld" );
+	testEmptyCommandGenerated.call( test, "/WebApplication_src\\vrl-web-app\\Web Content\\WEB-INF\\lta-vrl-en2-utils.tld" );
+	testEmptyCommandGenerated.call( test, "\\WebApplication_src\\vrl-web-app\\Web Content\\WEB-INF\\lta-vrl-en2-utils.tld" );
 	
 	test.done();
 };

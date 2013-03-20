@@ -131,13 +131,14 @@ function genAndWriteToFile(src, dest) {
 
 function genFromString(str) {
     var match, ext, path,
-		regex = /[^\\]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,		
+		regex = /[\S]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,		
 		exts = [ "java", "tld", "jsp", "js", "xml", "properties", "css" ],
+		slashes = [ "/", "\\" ],
         pushCmds = [];
 
     while ( (match = regex.exec(str)) ) {
-		path = match[ 0 ];		
-		if ( exts.indexOf( (ext = path.substring( path.lastIndexOf(".") + 1 )) ) >= 0 ) {
+		path = match[ 0 ];				
+		if ( slashes.indexOf( path[0] ) < 0 && exts.indexOf( (ext = path.substring( path.lastIndexOf(".") + 1 )) ) >= 0 ) {
 			pushCmds.push(generateCommand( concat.call(match, ext) ));
 		}
     }
