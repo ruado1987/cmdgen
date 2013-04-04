@@ -36,59 +36,6 @@ var config = {
     appTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0"),
     batchTmpl = _.template("dply_batch_push ${comType} ${comPath} ${localPath}");
 
-function generateCommand( match ) {	
-    if ( match[5] === "java" ) {
-        return generateCmdForJavaComponent( match );
-    } else {
-        return generateCmdForWebComponent( match );
-    }
-}
-
-function generateCmdForJavaComponent( match ) {
-    var pComps, cPath, cType;
-    pComps = [
-		baseDir,
-		getCommonDir( match[1] ),
-		match[1],
-		config[match[1]].bin,
-		match[3],
-		match[4].replace("java", "class")
-	];
-    cPath = match[3].replace(/\\/g, "/");
-    cPath = _.join( "/", cPath, pComps[5] );
-    cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
-
-    return fillTemplate(cType, cPath, pComps);
-}
-
-function generateCmdForWebComponent(match) {
-    var pComps, cPath, cType;
-    pComps = [
-		baseDir,
-		getCommonDir(),
-		match[1],
-		match[2],
-		match[3],
-		match[4]
-	];	
-	
-    if (["properties", "jsp"].indexOf(match[5]) === -1) {
-        cPath = match[3].replace(/\\/g, "/");
-        cPath = _.join( "/", cPath, match[4] );
-        cType = "WAR";
-    } else if ("jsp" === match[5]) {
-        cPath = _s.splice(match[3], 0, 4).replace(/\\/g, "/");
-        cPath = _.join( "/", cPath, match[4] );
-        cType = "JSP";
-    } else { // properties
-        cPath = match[4];
-        cType = "Action";
-    }
-
-    /* remove falsy values, which may be the case when component type is JSP */
-    return fillTemplate(cType, cPath, _.compact(pComps));
-}
-
 function getCommonDir( cType ) {
     if ( cType === "vrl-commons" ) {
         return "Framework_src";
@@ -98,20 +45,103 @@ function getCommonDir( cType ) {
         return "WebApplication_src";
     }
 }
-
-function fillTemplate(cType, cPath,	pComps)	{
-	if ( cType.indexOf("vrl-j2ee-client") >= 0 ) {
+	
+function BatchCommandGenerator() {
+	
+	this.generateCommand = function( match ) {
+		var pComps,
+			cPath,
+			cType;
+			
+	    pComps = [
+			baseDir,
+			getCommonDir( match[1] ),
+			match[1],
+			config[match[1]].bin,
+			match[3],
+			match[4].replace("java", "class")
+		];
+	    cPath = match[3].replace(/\\/g, "/");
+	    cPath = _.join( "/", cPath, pComps[5] );
+	    cType = match[1] + ".jar";
+	    
 		return batchTmpl({
 			comType: cType,
 			comPath: cPath,
 			localPath: _s.quote(pComps.join("\\"))
 		});
-	} else {
-		return appTmpl({
-			comType: cType,
-			comPath: cPath,
-			localPath: _s.quote(pComps.join("\\"))
-		});
+	};
+}
+
+function OnlineCommandGenerator() {
+	
+	this.generateCommand = function( match ) {	
+	    if ( match[5] === "java" ) {
+	        return generateCmdForJavaComponent( match );
+	    } else {
+	        return generateCmdForWebComponent( match );
+	    }
+	};
+	
+	function generateCmdForJavaComponent( match ) {
+	    var pComps, cPath, cType;
+	    pComps = [
+			baseDir,
+			getCommonDir( match[1] ),
+			match[1],
+			config[match[1]].bin,
+			match[3],
+			match[4].replace("java", "class")
+		];
+	    cPath = match[3].replace(/\\/g, "/");
+	    cPath = _.join( "/", cPath, pComps[5] );
+	    cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
+	
+	    return fillTemplate(cType, cPath, pComps);
+	}
+	
+	function generateCmdForWebComponent(match) {
+	    var pComps, cPath, cType;
+	    pComps = [
+			baseDir,
+			getCommonDir(),
+			match[1],
+			match[2],
+			match[3],
+			match[4]
+		];	
+		
+	    if (["properties", "jsp"].indexOf(match[5]) === -1) {
+	        cPath = match[3].replace(/\\/g, "/");
+	        cPath = _.join( "/", cPath, match[4] );
+	        cType = "WAR";
+	    } else if ("jsp" === match[5]) {
+	        cPath = _s.splice(match[3], 0, 4).replace(/\\/g, "/");
+	        cPath = _.join( "/", cPath, match[4] );
+	        cType = "JSP";
+	    } else { // properties
+	        cPath = match[4];
+	        cType = "Action";
+	    }
+	
+	    /* remove falsy values, which may be the case when component type is JSP */
+	    return fillTemplate(cType, cPath, _.compact(pComps));
+	}
+	
+	function fillTemplate(cType, cPath,	pComps)	{
+		if ( cType.indexOf("vrl-j2ee-client") >= 0 ) {
+			return batchTmpl({
+				comType: cType,
+				comPath: cPath,
+				localPath: _s.quote(pComps.join("\\"))
+			});
+		} else {
+			return appTmpl({
+				comType: cType,
+				comPath: cPath,
+				localPath: _s.quote(pComps.join("\\"))
+			});
+		}
 	}
 }
 
@@ -129,17 +159,23 @@ function genAndWriteToFile(src, dest) {
     });
 }
 
-function genFromString(str) {
-    var match, ext, path,
+function genFromString(str, batch) {
+    var match, ext, path, generator,
 		regex = /[\S]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,		
 		exts = [ "java", "tld", "jsp", "js", "xml", "properties", "css" ],
 		slashes = [ "/", "\\" ],
         pushCmds = [];
+	
+	if (batch === true) {
+		generator = new BatchCommandGenerator();	
+	} else {
+		generator = new OnlineCommandGenerator();	
+	}
 
     while ( (match = regex.exec(str)) ) {
 		path = match[ 0 ];				
 		if ( slashes.indexOf( path[0] ) < 0 && exts.indexOf( (ext = path.substring( path.lastIndexOf(".") + 1 )) ) >= 0 ) {
-			pushCmds.push(generateCommand( concat.call(match, ext) ));
+			pushCmds.push(generator.generateCommand( concat.call(match, ext) ));
 		}
     }
 
