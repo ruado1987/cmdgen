@@ -3,12 +3,12 @@ var cmdgen = require( "../index.js" ),
     path = require( "path" );
 
 var tmpl = _.template("dply_app_push ${comType} " +
-            "${comPath} \"" + process.cwd() +
-            "\\${localPath}\" 0"),
+            "${comPath} \"" + process.cwd() + path.sep +
+            "${localPath}\" 0"),
 
     batchTmpl = _.template("dply_batch_push ${comType} " +
-            "${comPath} \""	+ process.cwd()	+
-            "\\${localPath}\"");
+            "${comPath} \""	+ process.cwd()	+ path.sep +
+            "${localPath}\"");
 
 _.mixin({
     classify: function (str) {
@@ -139,8 +139,12 @@ exports.testGenCmdFromBatchJavaComponent = function (test) {
 };
 
 exports.testGenCmdFromXmlComponent = function (test) {
-    var component = "WebApplication_src\\vrl-web-app\\Web " +
-        "Content\\WEB-INF\\EN2-Cmd.xml";
+    var component = path.join(
+					"WebApplication_src"
+					, "vrl-web-app"
+					, "Web Content"
+					, "WEB-INF"
+					, "Test-Cmd.xml");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -150,8 +154,13 @@ exports.testGenCmdFromXmlComponent = function (test) {
 };
 
 exports.testGenCmdFromJsComponent = function (test) {
-    var component = "WebApplication_src\\vrl-web-app\\Web " +
-        "Content\\scripts\\plupload\\jquery.postalCode-0.1.js";
+    var component = path.join(
+					"WebApplication_src"
+					, "vrl-web-app"
+					, "Web Content"
+					, "scripts"
+					, "plupload"
+					, "test.file-0.1.js");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -161,8 +170,12 @@ exports.testGenCmdFromJsComponent = function (test) {
 };
 
 exports.testGenCmdFromCssComponent = function (test) {
-    var component = "WebApplication_src\\vrl-web-app\\Web " +
-        "Content\\theme\\vrl.css";
+    var component = path.join(
+					"WebApplication_src"
+					, "vrl-web-app"
+					, "Web Content"
+					, "theme"
+					, "vrl.css");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -172,8 +185,12 @@ exports.testGenCmdFromCssComponent = function (test) {
 };
 
 exports.testGenCmdFromTldComponent = function (test) {
-    var component = "WebApplication_src\\vrl-web-app\\Web " +
-        "Content\\WEB-INF\\lta-vrl-en2-utils.tld";
+    var component = path.join(
+					"WebApplication_src"
+					, "vrl-web-app"
+					, "Web Content"
+					, "WEB-INF"
+					, "test-file-utils.tld");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -187,12 +204,9 @@ exports.testForceGeneratingBatchJavaComponent = function (test) {
                         "Framework_src"
                         , "vrl-commons"
                         , "source"
-                        , "sg"
-                        , "gov"
-                        , "lta"
-                        , "vrl"
-                        , "commons"
-                        , "EN2FunctionID.java");
+                        , "org"
+                        , "test"
+                        , "Test.java");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "vrl-commons.jar",
@@ -231,11 +245,10 @@ function testEmptyCommandGenerated( component ) {
 }
 
 exports.testGenCmdWithUnmatchingComponentPaths = function (test) {
-    testEmptyCommandGenerated.call( test, "WebApplication_src\\lta-vrl\\lib\\commons-lang.jar" );
-    testEmptyCommandGenerated.call( test, "WebApplication_src\\vrl-web-app\\Web Content\\META-INF\\MANIFEST.MF" );
-    testEmptyCommandGenerated.call( test, "WebApplication_src/vrl-web-app/Web Content/WEB-INF/lta-vrl-en2-utils.tld" );
-    testEmptyCommandGenerated.call( test, "/WebApplication_src\\vrl-web-app\\Web Content\\WEB-INF\\lta-vrl-en2-utils.tld" );
-    testEmptyCommandGenerated.call( test, "\\WebApplication_src\\vrl-web-app\\Web Content\\WEB-INF\\lta-vrl-en2-utils.tld" );
+    testEmptyCommandGenerated.call( test, path.join("WebApplication_src", "lta-vrl", "lib", "commons-lang.jar") );
+    testEmptyCommandGenerated.call( test, path.join("WebApplication_src", "vrl-web-app", "Web Content", "META-INF", "MANIFEST.MF") );
+    testEmptyCommandGenerated.call( test, path.join("/WebApplication_src", "vrl-web-app", "Web Content", "WEB-INF", "lta-vrl-en2-utils.tld") );
+    testEmptyCommandGenerated.call( test, path.join("\\WebApplication_src", "vrl-web-app", "Web Content", "WEB-INF", "lta-vrl-en2-utils.tld") );
 
     test.done();
 };

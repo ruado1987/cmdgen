@@ -198,8 +198,8 @@ function genAndWriteToFile(src, dest) {
 }
 
 function genFromString(str, batch) {
-    var match, ext, path, generator, cmds,
-        regex = /[\S]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,
+    var match, ext, cPath, generator, cmds,
+        regex = new RegExp( path.join("[\\S]+?", "([^", "]+?)", "([^", "]+?)(?:", "([^\\.]+)", "|", ")(.+)"), "g" ),
         exts = ["java", "tld", "jsp", "js", "xml", "properties", "css"],
         slashes = ["/", "\\"],
         pushCmds = [];
@@ -211,8 +211,8 @@ function genFromString(str, batch) {
     }
 
     while ((match = regex.exec(str))) {
-        path = match[0];
-        if (slashes.indexOf(path[0]) < 0 && exts.indexOf((ext = path.substring(path.lastIndexOf(".") + 1))) >= 0) {
+        cPath = match[0];
+        if (slashes.indexOf(cPath[0]) < 0 && exts.indexOf((ext = cPath.substring(cPath.lastIndexOf(".") + 1))) >= 0) {
             cmds = generator.generateCommand(concat.call(match, ext));
             push.apply( pushCmds, _.isArray(cmds)? cmds : [cmds] );
         }
