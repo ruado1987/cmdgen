@@ -1,11 +1,13 @@
 // modules in use
 var fs = require("fs"),
+    path = require("path"),
     argv = require("optimist").argv,
     _ = require("underscore"),
     _s = require("underscore.string");
 
 // Array.prototype methods quick reference
-var concat = Array.prototype.concat;
+var concat = Array.prototype.concat,
+    push = Array.prototype.push;
 
 // mixin underscore.string to underscore namespace
 _.mixin(_s.exports());
@@ -17,7 +19,7 @@ _.templateSettings = {
 // configuration vars
 var config = {
     "vrl-web-app": {
-        bin: "Web Content\\WEB-INF\\classes"
+        bin: path.join("Web Content", "WEB-INF", "classes")
     },
     "vrl-ejb-app": {
         bin: "bin"
@@ -46,12 +48,44 @@ function getCommonDir(cType) {
     }
 }
 
+function generateCommandsForInnerClasses(pathComponents) {
+    var dir = path.dirname(path.join.apply(this, pathComponents));
+    if ( fs.existsSync(dir) ) {
+        var files = fs.readdirSync( dir )
+            , regex = new RegExp( pathComponents[5].split(".")[0] + "\\$[^\\.]+\\.class" )
+            , idx
+            , cPath
+            , cmds = [];
+                
+        files.forEach( function(file) {
+            if ( regex.test(file) ) {
+                pathComponents[5] = file;
+                // compute the component of this inner class
+                idx = file.indexOf( "$" );                
+                file = _s.insert( file, idx, "'" );
+                file = _s.insert( file, idx + 2, "'" );
+                cPath = pathComponents[4].replace( /\\/g, "/" );
+                cPath = _.join("/", cPath, file);
+                
+                cmds.push(batchTmpl({
+                    comType: pathComponents[2] + ".jar",
+                    comPath: cPath,
+                    localPath: _s.quote(path.join.apply(this, pathComponents))
+                }));
+            }
+        } );
+        return cmds;
+    }
+}
+
 function BatchCommandGenerator() {
 
     this.generateCommand = function (match) {
-        var pComps,
-            cPath,
-            cType;
+        var pComps
+            , cPath
+            , cType
+            , innerCmds
+            , cmds = [];
 
         pComps = [
             baseDir,
@@ -64,12 +98,17 @@ function BatchCommandGenerator() {
         cPath = match[3].replace(/\\/g, "/");
         cPath = _.join("/", cPath, pComps[5]);
         cType = match[1] + ".jar";
-
-        return batchTmpl({
+        cmds.push( batchTmpl({
             comType: cType,
             comPath: cPath,
-            localPath: _s.quote(pComps.join("\\"))
-        });
+            localPath: _s.quote(path.join.apply(this, pComps))
+        }) );
+                
+        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps))) ) {
+            push.apply( cmds, innerCmds );
+        }
+        
+        return cmds;
     };
 }
 
@@ -129,18 +168,15 @@ function OnlineCommandGenerator() {
     }
 
     function fillTemplate(cType, cPath, pComps) {
+        var data = {
+              comType: cType,
+              comPath: cPath,
+              localPath: _s.quote(path.join.apply(this, pComps))
+        };
         if (cType.indexOf("vrl-j2ee-client") >= 0) {
-            return batchTmpl({
-                comType: cType,
-                comPath: cPath,
-                localPath: _s.quote(pComps.join("\\"))
-            });
+            return batchTmpl(data);
         } else {
-            return appTmpl({
-                comType: cType,
-                comPath: cPath,
-                localPath: _s.quote(pComps.join("\\"))
-            });
+            return appTmpl(data);
         }
     }
 }
@@ -162,7 +198,7 @@ function genAndWriteToFile(src, dest) {
 }
 
 function genFromString(str, batch) {
-    var match, ext, path, generator,
+    var match, ext, path, generator, cmds,
         regex = /[\S]+?\\([^\\]+?)\\([^\\]+?)(?:\\([^\.]+)\\|\\)(.+)/g,
         exts = ["java", "tld", "jsp", "js", "xml", "properties", "css"],
         slashes = ["/", "\\"],
@@ -177,7 +213,8 @@ function genFromString(str, batch) {
     while ((match = regex.exec(str))) {
         path = match[0];
         if (slashes.indexOf(path[0]) < 0 && exts.indexOf((ext = path.substring(path.lastIndexOf(".") + 1))) >= 0) {
-            pushCmds.push(generator.generateCommand(concat.call(match, ext)));
+            cmds = generator.generateCommand(concat.call(match, ext));
+            push.apply( pushCmds, _.isArray(cmds)? cmds : [cmds] );
         }
     }
     return pushCmds;
