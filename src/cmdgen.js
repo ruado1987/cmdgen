@@ -1,9 +1,10 @@
 // modules in use
-var fs = require("fs"),
-    path = require("path"),
-    argv = require("optimist").argv,
-    _ = require("underscore"),
-    _s = require("underscore.string");
+var fs = require( "fs" )
+    , path = require( "path" )
+    , os = require( "os" )
+    , argv = require( "optimist" ).argv
+    , _ = require( "underscore" )
+    , _s = require( "underscore.string" );
 
 // Array.prototype methods quick reference
 var concat = Array.prototype.concat,
@@ -17,26 +18,27 @@ _.templateSettings = {
 };
 
 // configuration vars
-var config = {
-    "vrl-web-app": {
-        bin: path.join("Web Content", "WEB-INF", "classes")
-    },
-    "vrl-ejb-app": {
-        bin: "bin"
-    },
-    "vrl-dao-app": {
-        bin: "bin"
-    },
-    "vrl-commons": {
-        bin: "bin"
-    },
-    "vrl-j2ee-client": {
-        bin: "bin"
+var isWindows = os.platform().match(/^win/)
+    , config = {
+        "vrl-web-app": {
+            bin: path.join("Web Content", "WEB-INF", "classes")
+        },
+        "vrl-ejb-app": {
+            bin: "bin"
+        },
+        "vrl-dao-app": {
+            bin: "bin"
+        },
+        "vrl-commons": {
+            bin: "bin"
+        },
+        "vrl-j2ee-client": {
+            bin: "bin"
+        }
     }
-},
-    baseDir = argv.baseDir || process.cwd(),
-    appTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0"),
-    batchTmpl = _.template("dply_batch_push ${comType} ${comPath} ${localPath}");
+    , baseDir = argv.baseDir || process.cwd()
+    , appTmpl = _.template("dply_app_push ${comType} ${comPath} ${localPath} 0")
+    , batchTmpl = _.template("dply_batch_push ${comType} ${comPath} ${localPath}");
 
 function getCommonDir(cType) {
     if (cType === "vrl-commons") {
@@ -198,18 +200,32 @@ function genAndWriteToFile(src, dest) {
 }
 
 function genFromString(str, batch) {
-    var match, ext, cPath, generator, cmds,
-        regex = new RegExp( path.join("[\\S]+?", "([^", "]+?)", "([^", "]+?)(?:", "([^\\.]+)", "|", ")(.+)"), "g" ),
-        exts = ["java", "tld", "jsp", "js", "xml", "properties", "css"],
-        slashes = ["/", "\\"],
-        pushCmds = [];
-
-    if (batch === true) {
-        generator = new BatchCommandGenerator();
+    var match, ext, cPath, generator, cmds, regex
+        , exts = ["java", "tld", "jsp", "js", "xml", "properties", "css"]
+        , slashes = ["/", "\\"]
+        , pushCmds = [];
+    
+    if ( isWindows ) {
+        regex = new RegExp( _.join(
+                                "\\\\"
+                                , "\\S+?"
+                                , "([^", "]+?)"
+                                , "([^", "]+?)(?:"
+                                , "([^\\.]+)", "|"
+                                , ")(.+)")
+                            , "g" );
     } else {
-        generator = new OnlineCommandGenerator();
+        regex = new RegExp( path.join(
+                                "\\S+?"
+                                , "([^", "]+?)"
+                                , "([^", "]+?)(?:"
+                                , "([^\\.]+)"
+                                , "|"
+                                , ")(.+)")
+                            , "g" );
     }
-
+    
+    generator = (batch === true) ? new BatchCommandGenerator() : new OnlineCommandGenerator();
     while ((match = regex.exec(str))) {
         cPath = match[0];
         if (slashes.indexOf(cPath[0]) < 0 && exts.indexOf((ext = cPath.substring(cPath.lastIndexOf(".") + 1))) >= 0) {
