@@ -30,9 +30,6 @@ function testCommandGeneratedAsExpected(component, tmplData, batch) {
     if (flags & batch === 1) {
         cmd = cmdgen.genFromString(component, true);
         this.equal(cmd[0], batchTmpl(tmplData));
-    } else if (flags & batch === 2) {
-        cmd = cmdgen.genFromString(component);
-        this.equal(cmd[0], batchTmpl(tmplData));
     } else if (flags & batch === 4) {
         cmd = cmdgen.genFromString(component);
         this.equal(cmd[0], tmpl(tmplData));
@@ -41,7 +38,7 @@ function testCommandGeneratedAsExpected(component, tmplData, batch) {
     }
     this.done();
 }
-testCommandGeneratedAsExpected.BATCH_FLAGS = 1 | 2 | 4;
+testCommandGeneratedAsExpected.BATCH_FLAGS = 1 | 4;
 
 exports.testGenCmdFromJSPComponent = function (test) {
     var component = path.join(
@@ -49,8 +46,8 @@ exports.testGenCmdFromJSPComponent = function (test) {
                         , "vrl-web-app"
                         , "Web Content"
                         , "JSP"
-                        , "en2"
-                        , "declareOPCUsage"
+                        , "org"
+                        , "test"
                         , "Test.jsp");
 
     testCommandGeneratedAsExpected.call(test, component, {
@@ -120,22 +117,6 @@ exports.testGenCmdFromCommonJavaComponent = function (test) {
         localPath: _.classify(component.replace("source", "bin")),
         comPath: _.classify(extractComponentPath(component, "source"))
     });
-};
-
-exports.testGenCmdFromBatchJavaComponent = function (test) {
-    var component = path.join(
-                    "BatchPrograms_src"
-                    , "vrl-j2ee-client"
-                    , "appClientModule" 
-                    , "org"
-                    , "test"
-                    , "TextFile.java");
-
-    testCommandGeneratedAsExpected.call(test, component, {
-        comType: "vrl-j2ee-client.jar",
-        localPath: _.classify(component.replace("appClientModule", "bin")),
-        comPath: _.classify(extractComponentPath(component, "appClientModule"))
-    }, 2);
 };
 
 exports.testGenCmdFromXmlComponent = function (test) {
@@ -215,7 +196,7 @@ exports.testForceGeneratingBatchJavaComponent = function (test) {
     }, 1);
 };
 
-exports.testGenCmdFromJavaComponentContainingNestedClasses = function (test) {
+exports.testGenCmdFromBatchJavaComponentContainingNestedClasses = function (test) {
     var component = path.join(
                         "WebApplication_src"
                         , "vrl-ejb-app"
@@ -224,19 +205,34 @@ exports.testGenCmdFromJavaComponentContainingNestedClasses = function (test) {
                         , "A.java");
 
     var cmd = cmdgen.genFromString(component, true);
-    
-    test.equal(cmd[0], batchTmpl({
+    testInnerCommandGeneratedAsExpected.apply( test, [cmd, component, batchTmpl] );
+}
+
+exports.testGenCmdFromJavaComponentContainingNestedClasses = function (test) {
+    var component = path.join(
+                        "WebApplication_src"
+                        , "vrl-ejb-app"
+                        , "ejbModule"
+                        , "inner"
+                        , "A.java");
+
+    var cmd = cmdgen.genFromString(component);
+    testInnerCommandGeneratedAsExpected.apply( test, [cmd, component, tmpl] );
+}
+
+function testInnerCommandGeneratedAsExpected(cmd, component, template) {
+    this.equal(cmd[0], template({
         comType: "vrl-ejb-app.jar",
         localPath: _.classify(component.replace("ejbModule", "bin")),
         comPath: _.classify(extractComponentPath(component, "ejbModule"))
     }));
-    test.equal(cmd[1], batchTmpl({
+    this.equal(cmd[1], template({
         comType: "vrl-ejb-app.jar",
         localPath: path.join(path.dirname(_.classify(component.replace("ejbModule", "bin"))), "/A$1.class"),
         comPath: path.dirname(_.classify(extractComponentPath(component, "ejbModule"))) + "/A'$'1.class"
     }));
     
-    test.done();
+    this.done();
 }
 
 function testEmptyCommandGenerated( component ) {

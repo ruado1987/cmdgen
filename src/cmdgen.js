@@ -50,7 +50,7 @@ function getCommonDir(cType) {
     }
 }
 
-function generateCommandsForInnerClasses(pathComponents) {
+function generateCommandsForInnerClasses(pathComponents, template) {
     var dir = path.dirname(path.join.apply(this, pathComponents));
     if ( fs.existsSync(dir) ) {
         var files = fs.readdirSync( dir )
@@ -69,7 +69,7 @@ function generateCommandsForInnerClasses(pathComponents) {
                 cPath = pathComponents[4].replace( /\\/g, "/" );
                 cPath = _.join("/", cPath, file);
                 
-                cmds.push(batchTmpl({
+                cmds.push(template({
                     comType: pathComponents[2] + ".jar",
                     comPath: cPath,
                     localPath: _s.quote(path.join.apply(this, pathComponents))
@@ -106,7 +106,7 @@ function BatchCommandGenerator() {
             localPath: _s.quote(path.join.apply(this, pComps))
         }) );
                 
-        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps))) ) {
+        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps, batchTmpl))) ) {
             push.apply( cmds, innerCmds );
         }
         
@@ -125,7 +125,12 @@ function OnlineCommandGenerator() {
     };
 
     function generateCmdForJavaComponent(match) {
-        var pComps, cPath, cType;
+        var pComps
+            , cPath
+            , cType
+            , innerCmds
+            , cmds = [];
+
         pComps = [
            baseDir,
            getCommonDir(match[1]),
@@ -137,8 +142,12 @@ function OnlineCommandGenerator() {
         cPath = match[3].replace(/\\/g, "/");
         cPath = _.join("/", cPath, pComps[5]);
         cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
+        cmds.push( fillTemplate(cType, cPath, pComps) );
 
-        return fillTemplate(cType, cPath, pComps);
+        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps, appTmpl))) ) {
+            push.apply( cmds, innerCmds );
+        }
+        return cmds;
     }
 
     function generateCmdForWebComponent(match) {
@@ -175,19 +184,15 @@ function OnlineCommandGenerator() {
               comPath: cPath,
               localPath: _s.quote(path.join.apply(this, pComps))
         };
-        if (cType.indexOf("vrl-j2ee-client") >= 0) {
-            return batchTmpl(data);
-        } else {
-            return appTmpl(data);
-        }
+        return appTmpl(data);
     }
 }
 
 function genAndWriteToFile(src, dest) {
     fs.readFile(src, "utf-8", function (err, data) {
-		if (err) {
-			return;
-		}
+        if (err) {
+            return;
+        }
         var pushCmds = genFromString(data),
             out = fs.createWriteStream(dest);
 

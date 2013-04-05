@@ -1,7 +1,7 @@
 {
   "name": "cmdgen",
-  "version": "0.1.0",
-  "description": "simple utility to generate command to push files",
+  "version": "0.4.0",
+  "description": "simple utility to generate command to push files to a staging server",
   "main": "index.js",
   "scripts": {
     "test": "grunt nodeunit"
