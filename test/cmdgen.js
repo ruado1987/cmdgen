@@ -121,11 +121,11 @@ exports.testGenCmdFromCommonJavaComponent = function (test) {
 
 exports.testGenCmdFromXmlComponent = function (test) {
     var component = path.join(
-					"WebApplication_src"
-					, "vrl-web-app"
-					, "Web Content"
-					, "WEB-INF"
-					, "Test-Cmd.xml");
+                    "WebApplication_src"
+                    , "vrl-web-app"
+                    , "Web Content"
+                    , "WEB-INF"
+                    , "Test-Cmd.xml");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -136,12 +136,12 @@ exports.testGenCmdFromXmlComponent = function (test) {
 
 exports.testGenCmdFromJsComponent = function (test) {
     var component = path.join(
-					"WebApplication_src"
-					, "vrl-web-app"
-					, "Web Content"
-					, "scripts"
-					, "plupload"
-					, "test.file-0.1.js");
+                    "WebApplication_src"
+                    , "vrl-web-app"
+                    , "Web Content"
+                    , "scripts"
+                    , "test"
+                    , "test.file-0.1.js");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -152,11 +152,11 @@ exports.testGenCmdFromJsComponent = function (test) {
 
 exports.testGenCmdFromCssComponent = function (test) {
     var component = path.join(
-					"WebApplication_src"
-					, "vrl-web-app"
-					, "Web Content"
-					, "theme"
-					, "vrl.css");
+                    "WebApplication_src"
+                    , "vrl-web-app"
+                    , "Web Content"
+                    , "theme"
+                    , "vrl.css");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",
@@ -167,11 +167,11 @@ exports.testGenCmdFromCssComponent = function (test) {
 
 exports.testGenCmdFromTldComponent = function (test) {
     var component = path.join(
-					"WebApplication_src"
-					, "vrl-web-app"
-					, "Web Content"
-					, "WEB-INF"
-					, "test-file-utils.tld");
+                    "WebApplication_src"
+                    , "vrl-web-app"
+                    , "Web Content"
+                    , "WEB-INF"
+                    , "test-file-utils.tld");
 
     testCommandGeneratedAsExpected.call(test, component, {
         comType: "WAR",

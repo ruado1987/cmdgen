@@ -51,41 +51,37 @@ function getCommonDir(cType) {
 }
 
 function generateCommandsForInnerClasses(pathComponents, template) {
-    var dir = path.dirname(path.join.apply(this, pathComponents));
+    var cmds = []
+        , dir = path.dirname(path.join.apply(this, pathComponents));
     if ( fs.existsSync(dir) ) {
         var files = fs.readdirSync( dir )
             , regex = new RegExp( pathComponents[5].split(".")[0] + "\\$[^\\.]+\\.class" )
             , idx
-            , cPath
-            , cmds = [];
-                
-        files.forEach( function(file) {
-            if ( regex.test(file) ) {
+            , file;
+
+        for (var i = files.length; i--; ) {
+            if ( regex.test((file = files[i])) ) {
                 pathComponents[5] = file;
                 // compute the component of this inner class
                 idx = file.indexOf( "$" );                
                 file = _s.insert( file, idx, "'" );
                 file = _s.insert( file, idx + 2, "'" );
-                cPath = pathComponents[4].replace( /\\/g, "/" );
-                cPath = _.join("/", cPath, file);
                 
                 cmds.push(template({
                     comType: pathComponents[2] + ".jar",
-                    comPath: cPath,
+                    comPath: _.join("/", pathComponents[4], file).replace( /\\/g, "/" ),
                     localPath: _s.quote(path.join.apply(this, pathComponents))
                 }));
             }
-        } );
-        return cmds;
+        }
     }
+    return cmds;
 }
 
 function BatchCommandGenerator() {
 
     this.generateCommand = function (match) {
         var pComps
-            , cPath
-            , cType
             , innerCmds
             , cmds = [];
 
@@ -97,24 +93,20 @@ function BatchCommandGenerator() {
             match[3],
             match[4].replace("java", "class")
         ];
-        cPath = match[3].replace(/\\/g, "/");
-        cPath = _.join("/", cPath, pComps[5]);
-        cType = match[1] + ".jar";
         cmds.push( batchTmpl({
-            comType: cType,
-            comPath: cPath,
+            comType: match[1] + ".jar",
+            comPath: _.join("/", match[3], pComps[5]).replace(/\\/g, "/"),
             localPath: _s.quote(path.join.apply(this, pComps))
         }) );
-                
-        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps, batchTmpl))) ) {
-            push.apply( cmds, innerCmds );
-        }
-        
+        push.apply( cmds, generateCommandsForInnerClasses(pComps, batchTmpl) );
+
         return cmds;
     };
 }
 
 function OnlineCommandGenerator() {
+    
+    var jspNprop = ["properties", "jsp"];
 
     this.generateCommand = function (match) {
         if (match[5] === "java") {
@@ -129,29 +121,30 @@ function OnlineCommandGenerator() {
             , cPath
             , cType
             , innerCmds
+            , cRoot = match[1]
             , cmds = [];
 
         pComps = [
            baseDir,
-           getCommonDir(match[1]),
-           match[1],
-           config[match[1]].bin,
+           getCommonDir(cRoot),
+           cRoot,
+           config[cRoot].bin,
            match[3],
            match[4].replace("java", "class")
         ];
-        cPath = match[3].replace(/\\/g, "/");
-        cPath = _.join("/", cPath, pComps[5]);
-        cType = match[1] === "vrl-web-app" ? "Action" : match[1] + ".jar";
+        cPath = _.join("/", match[3], pComps[5]).replace(/\\/g, "/");
+        cType = cRoot === "vrl-web-app" ? "Action" : cRoot + ".jar";
         cmds.push( fillTemplate(cType, cPath, pComps) );
+        push.apply( cmds, generateCommandsForInnerClasses(pComps, appTmpl) );
 
-        if ( _.isArray((innerCmds = generateCommandsForInnerClasses(pComps, appTmpl))) ) {
-            push.apply( cmds, innerCmds );
-        }
         return cmds;
     }
 
     function generateCmdForWebComponent(match) {
-        var pComps, cPath, cType;
+        var pComps
+            , cPath
+            , cType;
+
         pComps = [
            baseDir,
            getCommonDir(),
@@ -161,11 +154,11 @@ function OnlineCommandGenerator() {
            match[4]
         ];
 
-        if (["properties", "jsp"].indexOf(match[5]) === -1) {
+        if (jspNprop.indexOf(match[5]) === -1) {
             cPath = match[3].replace(/\\/g, "/");
             cPath = _.join("/", cPath, match[4]);
             cType = "WAR";
-        } else if ("jsp" === match[5]) {
+        } else if (jspNprop[1] === match[5]) {
             cPath = _s.splice(match[3], 0, 4).replace(/\\/g, "/");
             cPath = _.join("/", cPath, match[4]);
             cType = "JSP";
@@ -175,7 +168,7 @@ function OnlineCommandGenerator() {
         }
 
         /* remove falsy values, which may be the case when component type is JSP */
-        return fillTemplate(cType, cPath, _.compact(pComps));
+        return [fillTemplate(cType, cPath, _.compact(pComps))];
     }
 
     function fillTemplate(cType, cPath, pComps) {
@@ -205,7 +198,7 @@ function genAndWriteToFile(src, dest) {
 }
 
 function genFromString(str, batch) {
-    var match, ext, cPath, generator, cmds, regex
+    var match, ext, cPath, generator, regex
         , exts = ["java", "tld", "jsp", "js", "xml", "properties", "css"]
         , slashes = ["/", "\\"]
         , pushCmds = [];
@@ -233,9 +226,8 @@ function genFromString(str, batch) {
     generator = (batch === true) ? new BatchCommandGenerator() : new OnlineCommandGenerator();
     while ((match = regex.exec(str))) {
         cPath = match[0];
-        if (slashes.indexOf(cPath[0]) < 0 && exts.indexOf((ext = cPath.substring(cPath.lastIndexOf(".") + 1))) >= 0) {
-            cmds = generator.generateCommand(concat.call(match, ext));
-            push.apply( pushCmds, _.isArray(cmds)? cmds : [cmds] );
+        if (slashes.indexOf(cPath[0]) < 0 && exts.indexOf((ext = path.extname(cPath).slice(1))) >= 0) {            
+            push.apply( pushCmds, generator.generateCommand(concat.call(match, ext)) );
         }
     }
     return pushCmds;
