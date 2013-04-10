@@ -1,30 +1,35 @@
+var _ = require( "underscore" );
+
 exports.build =	function( command ) {
 	var	fn, match,
-		regex =	/(dply_app_push)\s(.+?)\s(.+?)\s(.+?)\s([01]{1})/g,		
+		regex = /(dply_(?:app|batch)_push)\s(.+?)\s(.+?)\s(?:(.+?)\s([01]){1}|(.+))/g,
 		commands = [],
-		count =	0;
+		count = 0;
 
 	fn = function( match ) {
 		return function( exec, controller ) {
-			var	args,				
-				push = exec	|| require( "child_process" ).exec;
+			var args,
+				push = exec || require( "child_process" ).exec;
 
 			args = Array.prototype.slice.call( match, 1 );
-			args.unshift("/c");
-			args.unshift("cmd");
-			push(args.join(" "), function ( stdin, stderr, error ) {
-				console.log( stdin + "\n" );
-				console.log( stderr+ "\n" );			
+			args.unshift("cmd", "/c");
+			push(_.compact(args).join(" "), function ( stdout, stderr, error ) {
+				if ( stdout ) {
+                    console.log( stdout + "\n" );
+                }
+				if ( stderr ) {
+                    console.log( stderr+ "\n" );
+                }
 				if ( error && error.code ) {
 					console.log( "Error occurred:\n" + error.code );
 				}
 				controller.done();
-			});			
+			});
 		};
 	};
 
 	while ((match = regex.exec( command ))) {
-		commands[ count++ ] =	{
+		commands[ count++ ] = {
 			execute: fn( match )
 		};
 	}
@@ -40,10 +45,10 @@ exports.Controller = function( commands ) {
 				idx = this.idx;
 			if ( idx < cmds.length - 1 ) {
 				cmds[ this.idx++ ].execute( null, this );
-			}			
+			}
 		},
 		executeBatch: function() {
-			this.cmds[ 0 ].execute( null, this );	
+			this.cmds[ 0 ].execute( null, this );
 		}
 	};
 };

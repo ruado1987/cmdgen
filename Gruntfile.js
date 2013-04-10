@@ -14,6 +14,9 @@ module.exports = function( grunt ) {
 			all: ['test/*.js']
 		},
 		jshint: {
+            options: {
+                laxcomma: true
+            },
 			all: ['Gruntfile.js', 'src/**/*.js', 'test/**/*.js']
 		}
 	});

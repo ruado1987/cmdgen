@@ -206,7 +206,7 @@ exports.testGenCmdFromBatchJavaComponentContainingNestedClasses = function (test
 
     var cmd = cmdgen.genFromString(component, true);
     testInnerCommandGeneratedAsExpected.apply( test, [cmd, component, batchTmpl] );
-}
+};
 
 exports.testGenCmdFromJavaComponentContainingNestedClasses = function (test) {
     var component = path.join(
@@ -218,7 +218,7 @@ exports.testGenCmdFromJavaComponentContainingNestedClasses = function (test) {
 
     var cmd = cmdgen.genFromString(component);
     testInnerCommandGeneratedAsExpected.apply( test, [cmd, component, tmpl] );
-}
+};
 
 function testInnerCommandGeneratedAsExpected(cmd, component, template) {
     this.equal(cmd[0], template({

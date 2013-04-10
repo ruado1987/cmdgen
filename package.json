@@ -4,7 +4,7 @@
   "description": "simple utility to generate command to push files to a staging server",
   "main": "index.js",
   "scripts": {
-    "test": "grunt nodeunit"
+    "test": "grunt travis"
   },
   "repository": "https://github.com/ruado1987/cmdgen",
   "author": "harry",
