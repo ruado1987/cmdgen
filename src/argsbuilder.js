@@ -34,6 +34,12 @@ exports.build = function (command) {
             execute: fn(match)
         };
     }
+        
+    if ( arguments[1] === true ) {
+      commands.push({
+          execute: fn( [ null, "Exec_was_cmd", "restartWAS.sh" ] ) 
+      });
+    }
 
     return commands;
 };
